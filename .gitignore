@@ -131,3 +131,4 @@ dmypy.json
 # dataset and files
 brain_tumor_44_classes/
 notebooks/embeddings.pickle
+shortened_dataset/

@@ -132,3 +132,5 @@ dmypy.json
 brain_tumor_44_classes/
 notebooks/embeddings.pickle
 shortened_dataset/
+filtered-brain-tumors/
+filtered-brain-tumors-shortened/

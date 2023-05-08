@@ -134,3 +134,5 @@ notebooks/embeddings.pickle
 shortened_dataset/
 filtered-brain-tumors/
 filtered-brain-tumors-shortened/
+stretched_and_segmented_dataset/
+*_dataset

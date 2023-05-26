@@ -1,11 +1,27 @@
-from pathlib import Path
-import cv2
 import os
 import sys
+
+from pathlib import Path
+import cv2
 import numpy as np
 import json
 import matplotlib.pyplot as plt
 from sympy import Point, Polygon
+from utils import *
+from FCM import FCM
+from sklearn.cluster import KMeans
+from sklearn.datasets import make_blobs
+import segmentation_models_pytorch as smp
+import pywt
+
+import torch
+import torchvision
+from torchvision import transforms
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import Dataset, DataLoader
+from torchvision.io import read_image
+
 sys.path.append(os.path.dirname(os.getcwd()))
 
 
@@ -109,3 +125,69 @@ def visualize_5_largest_contour(image, visualize=False):
     return contours, chosen_contour 
 
 
+def extract_one_cluster(image, cluster_number):
+    return (image == cluster_number).astype(np.uint8)*255
+
+
+
+
+
+def fuzzy_c_means(image, n_clusters, visualize=False):
+    cluster = FCM(image, image_bit=8, n_clusters=n_clusters, m=2, epsilon=0.05, max_iter=100, verbose=False)
+    cluster.form_clusters()
+    c_means_image = cluster.result
+
+    if visualize:
+        fig, ax = plt.subplots(1, n_clusters, figsize=(4*n_clusters, 6))
+        for i in range(n_clusters):
+            ax[i].imshow(extract_one_cluster(c_means_image, i))
+            ax[i].title.set_text('cluster number: ' + str(i))
+            
+    return c_means_image
+
+
+def k_means(image, n_clusters, visualize=False):
+    vectorized = image.reshape((-1,1))
+    kmeans = KMeans(n_clusters=n_clusters, random_state = 0, n_init=5).fit(vectorized)
+    centers = np.uint8(kmeans.cluster_centers_)
+    segmented_data = centers[kmeans.labels_.flatten()]
+    k_means_image = segmented_data.reshape((image.shape))
+    
+    return k_means_image
+
+
+def dwt_transform(image, visualize=False):
+    titles = ['Approximation', ' Horizontal detail',
+          'Vertical detail', 'Diagonal detail']
+    # First level DWT transform
+    coeffs = pywt.dwt2(image, 'haar')
+    LL, (LH, HL, HH) = coeffs
+    
+    # Second level DWT transform
+    coeffs = pywt.dwt2(LL, 'haar')
+    LL2, (LH2, HL2, HH2) = coeffs
+    
+    if visualize:
+        fig = plt.figure(figsize=(12, 3))
+        for i, a in enumerate([LL, LH, HL, HH]):
+            ax = fig.add_subplot(1, 4, i + 1)
+            ax.imshow(a, interpolation="nearest", cmap=plt.cm.gray)
+            ax.set_title(titles[i], fontsize=10)
+            ax.set_xticks([])
+            ax.set_yticks([])
+
+        fig.tight_layout()
+        plt.show()
+        
+        fig = plt.figure(figsize=(12, 3))
+        for i, a in enumerate([LL2, LH2, HL2, HH2]):
+            ax = fig.add_subplot(1, 4, i + 1)
+            ax.imshow(a, interpolation="nearest", cmap=plt.cm.gray)
+            ax.set_title(titles[i], fontsize=10)
+            ax.set_xticks([])
+            ax.set_yticks([])
+
+        fig.tight_layout()
+        plt.show()
+    
+    return LL2

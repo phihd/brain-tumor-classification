@@ -72,11 +72,14 @@ def contrast_stretching(image, visualize=False):
     fp = [0, 16, 128, 240, 255]
     x = np.arange(256)
     table = np.interp(x, xp, fp).astype('uint8')
-    contrasted = cv2.LUT(image, table)
+    #contrasted = cv2.LUT(image, table)
     if visualize:
         plt.figure()
         plt.imshow(contrasted)
         plt.show()
+        
+    clahe = cv2.createCLAHE(clipLimit=5)
+    contrasted = clahe.apply(image) + 30
     return contrasted
 
 

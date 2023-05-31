@@ -136,4 +136,6 @@ filtered-brain-tumors/
 filtered-brain-tumors-shortened/
 stretched_and_segmented_dataset/
 *_dataset
+*_dataset_1
+*_dataset_2
 *.zip
